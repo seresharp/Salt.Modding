@@ -22,7 +22,7 @@ namespace ProjectTower.menu.levels
     {
         [MonoModIgnore]
         [MonoModConstructor]
-        [ReplaceIntWithArrayLength(8, "item")]
+        [ReplaceIntWithArrayLength(8, "ProjectTower.player.ClassCatalog:startingClass")]
         public SelectClass() { }
 
         [MonoModIgnore]
@@ -42,22 +42,50 @@ namespace MonoMod
                 return;
             }
 
-            FieldDefinition item = null;
+            bool fieldOnSelf = true;
+            string fieldName = (string)attrib.ConstructorArguments[1].Value;
 
-            foreach (FieldDefinition def in method.DeclaringType.Fields)
+            //Get TypeDefinition for class
+            TypeDefinition typeWithField = null;
+            if (!fieldName.Contains(":"))
             {
-                if (def.Name == (string)attrib.ConstructorArguments[1].Value)
+                typeWithField = method.DeclaringType;
+            }
+            else
+            {
+                fieldOnSelf = false;
+
+                string[] split = fieldName.Split(new char[] { ':' });
+                string className = split[0];
+                fieldName = split[1];
+                
+                typeWithField = method.Module.GetType(className);
+            }
+
+            if (typeWithField == null)
+            {
+                return;
+            }
+
+            //Search for specified field on the class
+            FieldDefinition item = null;
+            foreach (FieldDefinition def in typeWithField.Fields)
+            {
+                if (def.Name == fieldName)
                 {
                     item = def;
                     break;
                 }
             }
 
-            if (item == null && method.DeclaringType.BaseType != null)
+            //Search on the base class if that fails
+            if (item == null && typeWithField.BaseType != null)
             {
-                foreach (FieldDefinition def in (method.DeclaringType.BaseType as TypeDefinition).Fields)
+                TypeReference tr = typeWithField.BaseType;
+                typeWithField = tr.Resolve();
+                foreach (FieldDefinition def in typeWithField.Fields)
                 {
-                    if (def.Name == (string)attrib.ConstructorArguments[1].Value)
+                    if (def.Name == fieldName)
                     {
                         item = def;
                         break;
@@ -71,14 +99,29 @@ namespace MonoMod
             }
 
             ILProcessor ilProcessor = method.Body.GetILProcessor();
-            Instruction[] newIL = new Instruction[]
+            Instruction[] newIL;
+            
+            if (fieldOnSelf)
             {
-                ilProcessor.Create(OpCodes.Ldarg_0),
-                ilProcessor.Create(OpCodes.Ldfld, item),
-                ilProcessor.Create(OpCodes.Ldlen),
-                ilProcessor.Create(OpCodes.Conv_I4)
-            };
+                newIL = new Instruction[]
+                {
+                    ilProcessor.Create(OpCodes.Ldarg_0),        //Load arg 0 (this)
+                    ilProcessor.Create(OpCodes.Ldfld, item),    //Load the field we found
+                    ilProcessor.Create(OpCodes.Ldlen),          //Load length of that field
+                    ilProcessor.Create(OpCodes.Conv_I4)         //Convert to Int32
+                };
+            }
+            else
+            {
+                newIL = new Instruction[]
+                {
+                    ilProcessor.Create(OpCodes.Ldsfld, item),   //Load field (assuming static for now)
+                    ilProcessor.Create(OpCodes.Ldlen),          //Load length
+                    ilProcessor.Create(OpCodes.Conv_I4)         //Convert to Int32
+                };
+            }
 
+            //Boring switch to get opcode
             OpCode ldcI4Num;
             switch ((int)attrib.ConstructorArguments[0].Value)
             {
@@ -115,13 +158,15 @@ namespace MonoMod
                 default:
                     ldcI4Num = OpCodes.Ldc_I4_S;
                     break;
-            } //Boring switch to get opcode
+            }
 
+            //Looping backwards so changing the IL doesn't mess anything up
             for (int i = method.Body.Instructions.Count - 1; i >= 0; i--)
             {
                 Instruction instr = method.Body.Instructions[i];
                 if (instr.OpCode == ldcI4Num && (ldcI4Num != OpCodes.Ldc_I4_S || (int)instr.Operand == (int)attrib.ConstructorArguments[0].Value))
                 {
+                    //Replace found IL with the new ILs
                     method.Body.Instructions.RemoveAt(i);
                     for (int j = 0; j < newIL.Length; j++)
                     {
