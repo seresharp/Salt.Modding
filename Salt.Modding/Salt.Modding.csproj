@@ -72,6 +72,7 @@
     <Compile Include="Patches\DialogEdit\dialog\DialogMgr.cs" />
     <Compile Include="Patches\ProjectTower\Game1.cs" />
     <Compile Include="Patches\ProjectTower\map\pickups\Pickup.cs" />
+    <Compile Include="Patches\ProjectTower\menu\levels\SelectClass.cs" />
     <Compile Include="Patches\ProjectTower\player\PlayerStats.cs" />
     <Compile Include="Patches\ProjectTower\Program.cs" />
     <Compile Include="Patches\SkillTreeEdit\skilltree\SkillTree.cs" />
