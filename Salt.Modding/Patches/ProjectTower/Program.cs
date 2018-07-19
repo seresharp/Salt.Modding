@@ -51,7 +51,7 @@ namespace Modding.Patches.ProjectTower
 
         private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
         {
-            Logger.LogError($"[API] Game crash!\n{e}");
+            Logger.LogError($"[API] Game crash!\n{e.ExceptionObject}");
             orig_UnhandledExceptionTrapper(sender, e);
         }
     }

@@ -12,6 +12,7 @@ namespace Modding
         private static List<Mod> loadedMods;
 
         public const string MODS_FOLDER = "Mods";
+        public const string RELINK_FOLDER = ".relinked";
 
         public static void LoadMods()
         {
@@ -22,6 +23,14 @@ namespace Modding
                 Directory.CreateDirectory(MODS_FOLDER);
             }
 
+            if (!Directory.Exists($"{MODS_FOLDER}{Path.DirectorySeparatorChar}{RELINK_FOLDER}"))
+            {
+                Directory.CreateDirectory($"{MODS_FOLDER}{Path.DirectorySeparatorChar}{RELINK_FOLDER}");
+            }
+
+            DirectoryInfo relinkInfo = new DirectoryInfo($"{MODS_FOLDER}{Path.DirectorySeparatorChar}{RELINK_FOLDER}");
+            relinkInfo.Attributes |= FileAttributes.Hidden;
+
             loadedMods = new List<Mod>();
 
             //Init mods from dlls. GetFiles is case-insensitive
@@ -30,19 +39,23 @@ namespace Modding
                 Logger.LogDebug($"[API] Loading mods from assembly: \"{name}\"");
                 try
                 {
-                    foreach (Type type in Assembly.LoadFile(Path.GetFullPath(name)).GetExportedTypes())
+                    using (FileStream stream = File.OpenRead(Path.GetFullPath(name)))
                     {
-                        if (type.IsSubclassOf(typeof(Mod)))
+                        Assembly asm = Relinker.GetRelinkedAssembly(stream, Path.GetFileNameWithoutExtension(name));
+                        foreach (Type type in asm.GetExportedTypes())
                         {
-                            Mod mod = (Mod)Activator.CreateInstance(type);
-
-                            if (mod == null)
+                            if (type.IsSubclassOf(typeof(Mod)))
                             {
-                                Logger.LogWarn($"[API] Could not instantiate mod \"{type}\" from file \"{name}\"");
-                                continue;
-                            }
+                                Mod mod = (Mod)Activator.CreateInstance(type);
 
-                            loadedMods.Add(mod);
+                                if (mod == null)
+                                {
+                                    Logger.LogWarn($"[API] Could not instantiate mod \"{type}\" from file \"{name}\"");
+                                    continue;
+                                }
+
+                                loadedMods.Add(mod);
+                            }
                         }
                     }
                 }

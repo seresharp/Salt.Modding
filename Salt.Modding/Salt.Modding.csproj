@@ -45,6 +45,13 @@
     <Reference Include="MonoMod">
       <HintPath>..\MonoMod\MonoMod.exe</HintPath>
     </Reference>
+    <Reference Include="MonoMod.BaseLoader">
+      <HintPath>..\MonoMod\MonoMod.BaseLoader.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoMod.Utils, Version=18.6.0.37004, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\MonoMod\MonoMod.Utils.dll</HintPath>
+    </Reference>
     <Reference Include="salt">
       <HintPath>..\Vanilla\salt.exe</HintPath>
     </Reference>
@@ -69,6 +76,7 @@
     <Compile Include="Patches\ProjectTower\Program.cs" />
     <Compile Include="Patches\SkillTreeEdit\skilltree\SkillTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Relinker.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
