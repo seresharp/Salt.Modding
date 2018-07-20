@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DialogEdit.dialog;
 using SkillTreeEdit.skilltree;
 using Modding.Patches.AudioEdit.sfx;
@@ -138,6 +139,47 @@ namespace Modding
                     Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running SkillTreeLoaded\n{e}");
                 }
             }
+        }
+        #endregion
+
+        #region ClassCatalogLoadHook
+        //ProjectTower.player.ClassCatalog.Init
+        public delegate void ClassCatalogLoadHook(List<ClassCatalog.PortableClass> classes);
+        private event ClassCatalogLoadHook _classCatalogLoadHook;
+
+        public event ClassCatalogLoadHook ClassesLoaded
+        {
+            add
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Adding ClassesLoaded");
+                _classCatalogLoadHook += value;
+            }
+            remove
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Removing ClassesLoaded");
+                _classCatalogLoadHook -= value;
+            }
+        }
+
+        internal void OnClassesLoaded(ref ClassCatalog.PortableClass[] classes)
+        {
+            if (_classCatalogLoadHook == null) return;
+
+            List<ClassCatalog.PortableClass> classesList = classes.ToList();
+
+            foreach (Delegate toInvoke in _classCatalogLoadHook.GetInvocationList())
+            {
+                try
+                {
+                    toInvoke.DynamicInvoke(classesList);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running ClassesLoaded\n{e}");
+                }
+            }
+
+            classes = classesList.ToArray();
         }
         #endregion
 
