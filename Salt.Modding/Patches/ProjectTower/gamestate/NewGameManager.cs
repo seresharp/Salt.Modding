@@ -57,12 +57,35 @@ namespace Modding.Patches.ProjectTower.gamestate
                     if (slashIdx != -1)
                     {
                         name = item.Substring(0, slashIdx);
-                        count = Convert.ToInt32(item.Substring(slashIdx + 1));
+                        if (!int.TryParse(item.Substring(slashIdx + 1), out count))
+                        {
+                            Logger.LogWarn($"[API] Failed adding item {item} to player inventory in NewGame: Could not parse number of items");
+                            continue;
+                        }
+                    }
+
+                    if (count <= 0)
+                    {
+                        Logger.LogWarn($"[API] Failed adding item {item} to player inventory in NewGame: {count} is not a valid item count");
+                        continue;
                     }
 
                     InvLoot loot = new InvLoot();
                     loot.InitFromName(name);
+
+                    if (loot.catalogIdx == -1)
+                    {
+                        Logger.LogWarn($"[API] Failed adding item {item} to player inventory in NewGame: Item not in loot catalog");
+                        continue;
+                    }
+
                     int invIdx = p.playerInv.Add(loot, false, count);
+
+                    if (invIdx == -1)
+                    {
+                        Logger.LogWarn($"[API] Failed adding {item} to player inventory in NewGame: Generic error in PlayerInv.Add");
+                        continue;
+                    }
 
                     if (loot.category == LootCatalog.CATEGORY_CONSUMABLE)
                     {
