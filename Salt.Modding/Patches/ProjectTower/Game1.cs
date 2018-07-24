@@ -12,15 +12,13 @@ namespace Modding.Patches.ProjectTower
 
         //Giving mods access to Game.Content
         public static new ContentManager Content { get; private set; }
+        
+        public void orig_ctor_Game1() { }
 
         [MonoModConstructor]
-        public Game1()
+        public void ctor_Game1()
         {
-            //MonoMod's orig_ctor stuff is broken, so I copy/pasted the original Game1() here
-            graphics = new GraphicsDeviceManager(this);
-            base.Content.RootDirectory = "Content";
-
-            //New stuff
+            orig_ctor_Game1();
             Content = base.Content;
             ModLoader.LoadMods();
         }

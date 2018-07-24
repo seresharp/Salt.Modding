@@ -6,6 +6,7 @@ using SkillTreeEdit.skilltree;
 using Modding.Patches.AudioEdit.sfx;
 using Modding.Patches.ProjectTower.map.pickups;
 using Modding.Patches.ProjectTower.player;
+using Modding.Patches.SheetEdit.TextureSheet;
 
 namespace Modding
 {
@@ -99,6 +100,43 @@ namespace Modding
                 catch (Exception e)
                 {
                     Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running SoundLoaded\n{e}");
+                }
+            }
+        }
+        #endregion
+
+        #region TextureLoadHook
+        //SheetEdit.TextureSheet.XTexture.ctor(BinaryReader, ContentManager)
+        public delegate void TextureLoadHook(XTexture tex);
+        private event TextureLoadHook _textureLoadHook;
+
+        public event TextureLoadHook TextureLoaded
+        {
+            add
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Adding TextureLoaded");
+                _textureLoadHook += value;
+            }
+            remove
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Removing TextureLoaded");
+                _textureLoadHook -= value;
+            }
+        }
+
+        internal void OnTextureLoaded(XTexture tex)
+        {
+            if (_textureLoadHook == null) return;
+
+            foreach (Delegate toInvoke in _textureLoadHook.GetInvocationList())
+            {
+                try
+                {
+                    toInvoke.DynamicInvoke(tex);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running TextureLoaded\n{e}");
                 }
             }
         }

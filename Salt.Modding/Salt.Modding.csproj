@@ -85,6 +85,7 @@
     <Compile Include="Patches\ProjectTower\player\PlayerInv.cs" />
     <Compile Include="Patches\ProjectTower\player\PlayerStats.cs" />
     <Compile Include="Patches\ProjectTower\Program.cs" />
+    <Compile Include="Patches\SheetEdit\TextureSheet\XTexture.cs" />
     <Compile Include="Patches\SkillTreeEdit\skilltree\SkillTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Relinker.cs" />
