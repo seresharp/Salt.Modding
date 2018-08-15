@@ -32,7 +32,7 @@ namespace Modding
 
         #region DialogLoadHook
         //DialogEdit.dialog.DialogMgr.ReadLocText
-        public delegate void DialogLoadHook(List<LocPair> dialog);
+        public delegate void DialogLoadHook(List<LocPair> locStrings, NPCDialog[] dialogList);
         private event DialogLoadHook _dialogLoadHook;
 
         public event DialogLoadHook DialogStringsLoaded
@@ -49,7 +49,7 @@ namespace Modding
             }
         }
 
-        internal void OnDialogLoaded(List<LocPair> dialog)
+        internal void OnDialogLoaded(List<LocPair> locStrings, NPCDialog[] dialogList)
         {
             if (_dialogLoadHook == null) return;
 
@@ -57,7 +57,7 @@ namespace Modding
             {
                 try
                 {
-                    toInvoke.DynamicInvoke(dialog);
+                    toInvoke.DynamicInvoke(locStrings, dialogList);
                 }
                 catch (Exception e)
                 {

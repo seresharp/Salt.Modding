@@ -11,13 +11,16 @@ namespace Modding.Patches.DialogEdit.dialog
         [MonoModIgnore]
         public static List<LocPair> locStrings;
 
-        [MonoModOriginalName("ReadLocText")]
-        public static void orig_ReadLocText(BinaryReader reader) { }
+        [MonoModIgnore]
+        public static NPCDialog[] dialogList;
 
-        public static void ReadLocText(BinaryReader reader)
+        [MonoModOriginalName("ReadMaster")]
+        public static void orig_ReadMaster() { }
+
+        public static void ReadMaster()
         {
-            orig_ReadLocText(reader);
-            ModHooks.Instance.OnDialogLoaded(locStrings);
+            orig_ReadMaster();
+            ModHooks.Instance.OnDialogLoaded(locStrings, dialogList);
         }
     }
 }
