@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using DialogEdit.dialog;
 using SkillTreeEdit.skilltree;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Modding.Patches.AudioEdit.sfx;
 using Modding.Patches.ProjectTower.map.pickups;
 using Modding.Patches.ProjectTower.player;
@@ -291,6 +293,66 @@ namespace Modding
                 {
                     Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running StatsUpdated\n{e}");
                 }
+            }
+        }
+        #endregion
+
+        #region IconDrawHook
+        //ProjectTower.character.draw.CharDrawCosmetics.DrawConsumable
+        //ProjectTower.hud.InterfaceRender.DrawItem
+        public delegate Texture2D IconDrawHook(int spriteId);
+        private event IconDrawHook _iconDrawHook;
+
+        public event IconDrawHook IconDraw
+        {
+            add
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Adding IconDraw");
+                _iconDrawHook += value;
+            }
+            remove
+            {
+                Logger.LogDebug($"[{GetModNameFromDelegate(value)}] Removing IconDraw");
+                _iconDrawHook -= value;
+            }
+        }
+
+        internal void OnIconDraw(SpriteBatch sprite, Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, 
+            Vector2 scale, SpriteEffects effects, float layerDepth)
+        {
+            if (_iconDrawHook == null)
+            {
+                sprite.Draw(texture, position, sourceRectangle, color, rotation, origin, scale, effects, layerDepth);
+                return;
+            }
+
+            int spriteId = ((int)position.X / 128) + ((int)position.Y / 128) * 16;
+
+            bool drawn = false;
+
+            foreach (Delegate toInvoke in _iconDrawHook.GetInvocationList())
+            {
+                try
+                {
+                    Texture2D tex = (Texture2D)toInvoke.DynamicInvoke(spriteId);
+
+                    if (tex != null && !drawn)
+                    {
+                        scale = new Vector2(scale.X * (1f / (tex.Width / 128f)), scale.Y * (1f / (tex.Height / 128f)));
+                        sprite.Draw(tex, position, new Rectangle(0, 0, tex.Width, tex.Height), color, rotation, new Vector2(tex.Width / 2f, tex.Height / 2f), scale, effects, layerDepth);
+
+                        drawn = true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"[{GetModNameFromDelegate(toInvoke)}] Error running IconDraw\n{e}");
+                }
+            }
+
+            if (!drawn)
+            {
+                sprite.Draw(texture, position, sourceRectangle, color, rotation, origin, scale, effects, layerDepth);
             }
         }
         #endregion

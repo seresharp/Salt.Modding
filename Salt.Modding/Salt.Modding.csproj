@@ -68,6 +68,7 @@
     <Compile Include="Attributes\MakePublic.cs" />
     <Compile Include="Attributes\MiddleHook.cs" />
     <Compile Include="Attributes\RemoveBetween.cs" />
+    <Compile Include="Attributes\ReplaceFunction.cs" />
     <Compile Include="Attributes\ReplaceIntWithArrayLength.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Mod.cs" />
@@ -76,8 +77,10 @@
     <Compile Include="Patches\AudioEdit\sfx\BankWave.cs" />
     <Compile Include="Patches\DialogEdit\dialog\DialogMgr.cs" />
     <Compile Include="Patches\ProjectTower\character\CharMgr.cs" />
+    <Compile Include="Patches\ProjectTower\character\draw\CharDrawCosmetics.cs" />
     <Compile Include="Patches\ProjectTower\Game1.cs" />
     <Compile Include="Patches\ProjectTower\gamestate\NewGameManager.cs" />
+    <Compile Include="Patches\ProjectTower\hud\InterfaceRender.cs" />
     <Compile Include="Patches\ProjectTower\map\pickups\Pickup.cs" />
     <Compile Include="Patches\ProjectTower\menu\levels\SelectClass.cs" />
     <Compile Include="Patches\ProjectTower\player\ClassCatalog.cs" />
